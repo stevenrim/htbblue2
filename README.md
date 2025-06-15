@@ -8,8 +8,6 @@ Forela's security systems detected an old domain admin account attempting to req
 | Tool | Purpose |
 |------|---------|
 | **Event Viewer** | Manual log inspection and event correlation |
-| **EvtxECmd (Eric Zimmerman)** | CLI-based EVTX parsing (alternative method) |
-| **Splunk / ELK (Suggested)** | Scalable SIEM analysis for large log sets |
 | **Windows Security Logs** | Core artifact source (Event IDs 4768 & 4769) |
 
 ## 🔍 Method (Investigation Steps)
@@ -20,7 +18,7 @@ Forela's security systems detected an old domain admin account attempting to req
    - Confirmed the hash of the `.zip` for integrity before proceeding with analysis.
 
 2. **Detection of AS-REP Roasting Activity**  
-   - Filtered for **Event ID 4768**, which logs Kerberos authentication ticket requests.  
+   - Filtered for `Event ID 4768`, which logs Kerberos authentication ticket requests.  
    - Focused on events with these specific indicators:  
      - `Pre-authentication type = 0` (indicates it's disabled)  
      - `Ticket encryption type = 0x17 (RC4)`  
@@ -32,10 +30,10 @@ Forela's security systems detected an old domain admin account attempting to req
    - Noted the `Client Address` field to determine the **internal IP address** of the attacker’s machine.
 
 4. **Tracing the Source User of the Attack**  
-   - Investigated subsequent log entries, particularly **Event ID 4769**, to find additional context.  
+   - Investigated subsequent log entries, particularly `Event ID 4769`, to find additional context.  
    - Cross-referenced the previously identified IP address with the next event.  
    - Discovered another user account active on the same IP, strongly suggesting it was used to conduct the attack.  
-   - This helped differentiate between the **victim user** (targeted for AS-REP Roast) and the **attacker’s compromised user account**.
+   - This helped differentiate between the `victim user` (targeted for AS-REP Roast) and the `attacker’s compromised user account`.
 
 ## ✅ The Solution  
 By examining Windows Security logs, we confirmed that an AS-REP Roasting attack had occurred. A domain account with pre-authentication disabled was targeted, and its ticket request was captured using RC4 encryption — suitable for offline cracking. Further analysis revealed which account initiated the attack, along with its originating IP address, supporting a clear attribution chain. This lab emphasizes the value of Event ID correlation and log timeline reconstruction in credential-based attack detection.
